@@ -12,6 +12,14 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 18 }}>💳</Text>,
         }}
       />
+      <Tabs.Screen
+        name="analytics"
+        options={{
+          title: 'Analytics',
+          headerTitle: 'Spending Summary',
+          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 18 }}>📊</Text>,
+        }}
+      />
     </Tabs>
   );
 }
