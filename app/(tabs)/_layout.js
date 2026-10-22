@@ -1,9 +1,25 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { useExpenses } from '../../context/ExpenseContext';
 
 export default function TabsLayout() {
+  const { currentTheme } = useExpenses();
+
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: '#6C5CE7' }}>
+    <Tabs
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: currentTheme.card,
+        },
+        headerTintColor: currentTheme.text,
+        tabBarStyle: {
+          backgroundColor: currentTheme.card,
+          borderTopColor: currentTheme.border,
+        },
+        tabBarActiveTintColor: currentTheme.accent,
+        tabBarInactiveTintColor: currentTheme.subText,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
