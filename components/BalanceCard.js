@@ -1,32 +1,22 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+import { useExpenses } from '../context/ExpenseContext';
 
-export default function BalanceCard({ balance }) {
+export default function BalanceCard() {
+  const { currentTheme, formatAmount, currentBalance } = useExpenses();
+
   return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>Total Balance</Text>
-      <Text style={styles.cardAmount}>KES {balance.toFixed(2)}</Text>
+    <View style={[styles.card, { backgroundColor: currentTheme.accent }]}>
+      <Text style={styles.title}>Remaining Balance</Text>
+      <Text style={styles.balance}>
+        {formatAmount(currentBalance || 0)}
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#6C5CE7',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
-    alignItems: 'center',
-  },
-  cardTitle: {
-    color: '#FFF',
-    fontSize: 16,
-    opacity: 0.8,
-  },
-  cardAmount: {
-    color: '#FFF',
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
+  card: { padding: 20, borderRadius: 12, marginBottom: 20, alignItems: 'center' },
+  title: { color: '#FFF', fontSize: 14, opacity: 0.9 },
+  balance: { color: '#FFF', fontSize: 28, fontWeight: 'bold', marginTop: 5 },
 });

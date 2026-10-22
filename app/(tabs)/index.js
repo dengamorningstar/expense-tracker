@@ -1,47 +1,103 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList, Switch } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useExpenses } from '../../context/ExpenseContext';
 import BalanceCard from '../../components/BalanceCard';
 import ExpenseForm from '../../components/ExpenseForm';
 
+const CURRENCIES = ['KES', 'USD', 'EUR', 'GBP'];
+
 export default function HomeScreen() {
-  const { expenses, currentBalance, addExpense, deleteExpense } = useExpenses();
+  const { 
+    expenses, 
+    addExpense, 
+    deleteExpense, 
+    theme, 
+    currentTheme, 
+    toggleTheme, 
+    currency, 
+    changeCurrency, 
+    formatAmount 
+  } = useExpenses();
+
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
 
-  const filteredExpenses = expenses.filter((item) =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter expenses safely by title
+  const filteredExpenses = (expenses || []).filter((item) =>
+    item && item.title && item.title.toLowerCase().includes((searchQuery || '').toLowerCase())
   );
 
   return (
-    <View style={styles.container}>
-      <BalanceCard balance={currentBalance} />
-      <ExpenseForm onAddExpense={addExpense} />
-
-      <Text style={styles.sectionTitle}>Expenses</Text>
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Search expenses..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-      />
-
+    <View style={[styles.container, { backgroundColor: currentTheme.background }]}>
       <FlatList
         data={filteredExpenses}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        ListHeaderComponent={
+          <View>
+            {/* Settings Bar */}
+            <View style={[styles.settingsBar, { backgroundColor: currentTheme.card }]}>
+              <View style={styles.themeToggle}>
+                <Text style={[styles.settingLabel, { color: currentTheme.text }]}>
+                  {theme === 'dark' ? '🌙 Dark' : '☀️ Light'}
+                </Text>
+                <Switch value={theme === 'dark'} onValueChange={toggleTheme} />
+              </View>
+
+              <View style={styles.currencyContainer}>
+                {CURRENCIES.map((cur) => (
+                  <TouchableOpacity
+                    key={cur}
+                    style={[
+                      styles.currencyBadge,
+                      currency === cur && { backgroundColor: currentTheme.accent },
+                    ]}
+                    onPress={() => changeCurrency(cur)}
+                  >
+                    <Text style={[styles.currencyText, currency === cur && { color: '#FFF' }]}>
+                      {cur}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <BalanceCard />
+            <ExpenseForm onAddExpense={addExpense} />
+
+            <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Expenses</Text>
+
+            {/* Search Input maintaining focus across re-renders */}
+            <TextInput
+              style={[
+                styles.searchInput,
+                { 
+                  backgroundColor: currentTheme.inputBg, 
+                  borderColor: currentTheme.border, 
+                  color: currentTheme.text 
+                },
+              ]}
+              placeholder="Search expenses..."
+              placeholderTextColor={currentTheme.subText}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+            />
+          </View>
+        }
         renderItem={({ item }) => (
-          <View style={styles.row}>
+          <View style={[styles.row, { backgroundColor: currentTheme.rowBg }]}>
             <TouchableOpacity
               style={{ flex: 1 }}
               onPress={() => router.push(`/edit?id=${item.id}`)}
             >
               <View style={styles.rowHeader}>
-                <Text style={styles.rowTitle}>{item.title}</Text>
+                <Text style={[styles.rowTitle, { color: currentTheme.text }]}>{item.title}</Text>
                 <Text style={styles.categoryTag}>{item.category || 'General'}</Text>
               </View>
-              <Text style={styles.rowAmount}>- KES {item.amount.toFixed(2)}</Text>
+              <Text style={styles.rowAmount}>- {formatAmount(item.amount)}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -52,22 +108,53 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         )}
-        ListEmptyComponent={<Text style={styles.emptyText}>No expenses found.</Text>}
+        ListEmptyComponent={
+          <Text style={[styles.emptyText, { color: currentTheme.subText }]}>
+            No expenses found.
+          </Text>
+        }
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F7FA', padding: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, color: '#333' },
-  searchInput: { backgroundColor: '#FFF', padding: 12, borderRadius: 8, marginBottom: 15, borderWidth: 1, borderColor: '#DDD' },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFF', padding: 15, borderRadius: 8, marginBottom: 10 },
+  container: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
+  settingsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  themeToggle: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  settingLabel: { fontSize: 13, fontWeight: 'bold' },
+  currencyContainer: { flexDirection: 'row', gap: 4 },
+  currencyBadge: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6, backgroundColor: '#E0E0E0' },
+  currencyText: { fontSize: 11, fontWeight: 'bold', color: '#333' },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  searchInput: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 10, 
+    borderRadius: 8, 
+    marginBottom: 15, 
+    borderWidth: 1, 
+    fontSize: 16 
+  },
+  row: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: 15, 
+    borderRadius: 8, 
+    marginBottom: 10 
+  },
   rowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rowTitle: { fontSize: 16, fontWeight: '600', color: '#333' },
-  categoryTag: { fontSize: 10, backgroundColor: '#E0E0E0', color: '#555', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: 'hidden' },
+  rowTitle: { fontSize: 16, fontWeight: '600' },
+  categoryTag: { fontSize: 10, backgroundColor: '#E0E0E0', color: '#555', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   rowAmount: { fontSize: 14, fontWeight: 'bold', color: '#D63031', marginTop: 4 },
   deleteButton: { backgroundColor: '#FF7675', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 },
   deleteText: { color: '#FFF', fontWeight: 'bold', fontSize: 12 },
-  emptyText: { textAlign: 'center', color: '#888', marginTop: 20 },
+  emptyText: { textAlign: 'center', marginTop: 10, marginBottom: 20 },
 });
