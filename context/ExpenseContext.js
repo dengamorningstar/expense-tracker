@@ -6,7 +6,7 @@ import { themes, CURRENCY_SYMBOLS } from '../constants/theme';
 const STORAGE_KEY = '@expense_tracker_items';
 const THEME_KEY = '@expense_tracker_theme';
 const CURRENCY_KEY = '@expense_tracker_currency';
-const INITIAL_BUDGET = 20000;
+const INITIAL_BUDGET = 200000;
 
 const ExpenseContext = createContext();
 
