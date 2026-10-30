@@ -1,17 +1,15 @@
 import { Tabs } from 'expo-router';
-import { Text } from 'react-native';
-import { useExpenses } from '../../context/ExpenseContext';
+import { Ionicons } from '@expo/vector-icons';
+import { useExpenseStore, THEMES } from '../../store/useExpenseStore';
 
 export default function TabsLayout() {
-  const { currentTheme } = useExpenses();
+  const theme = useExpenseStore((state) => state.theme);
+  const currentTheme = THEMES[theme] || THEMES.light;
 
   return (
     <Tabs
       screenOptions={{
-        headerStyle: {
-          backgroundColor: currentTheme.card,
-        },
-        headerTintColor: currentTheme.text,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: currentTheme.card,
           borderTopColor: currentTheme.border,
@@ -23,17 +21,19 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Expenses',
-          headerTitle: 'Expense Tracker',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 18 }}>💳</Text>,
+          title: 'Home',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="analytics"
         options={{
           title: 'Analytics',
-          headerTitle: 'Spending Summary',
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 18 }}>📊</Text>,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="pie-chart" size={size} color={color} />
+          ),
         }}
       />
     </Tabs>

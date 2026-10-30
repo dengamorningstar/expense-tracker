@@ -1,8 +1,9 @@
 import { Stack } from 'expo-router';
-import { ExpenseProvider, useExpenses } from '../context/ExpenseContext';
+import { useExpenseStore, THEMES } from '../store/useExpenseStore';
 
-function RootLayoutNav() {
-  const { currentTheme } = useExpenses();
+export default function RootLayout() {
+  const theme = useExpenseStore((state) => state.theme);
+  const currentTheme = THEMES[theme] || THEMES.light;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -20,13 +21,5 @@ function RootLayoutNav() {
         }}
       />
     </Stack>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <ExpenseProvider>
-      <RootLayoutNav />
-    </ExpenseProvider>
   );
 }
