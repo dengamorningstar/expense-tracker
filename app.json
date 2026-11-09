@@ -19,7 +19,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.expensetracker"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,6 +28,16 @@
     "plugins": [
       "expo-status-bar",
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "6cf42b3f-8462-4c69-a766-82f9c1e1f186"
+      }
+    }
   }
 }
