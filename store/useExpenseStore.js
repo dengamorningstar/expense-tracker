@@ -32,6 +32,14 @@ const CURRENCY_SYMBOLS = {
   GBP: '£',
 };
 
+// Exchange rates relative to base currency (KES)
+const EXCHANGE_RATES = {
+  KES: 1,
+  USD: 0.0077, // 1 KES ≈ 0.0077 USD (1 USD ≈ 130 KES)
+  EUR: 0.0071, // 1 KES ≈ 0.0071 EUR (1 EUR ≈ 140 KES)
+  GBP: 0.0061, // 1 KES ≈ 0.0061 GBP (1 GBP ≈ 163 KES)
+};
+
 export const useExpenseStore = create(
   persist(
     (set, get) => ({
@@ -78,11 +86,23 @@ export const useExpenseStore = create(
 
       updateMonthlyBudget: (newBudget) => set({ monthlyBudget: newBudget }),
 
-      // Helpers
+      // Dynamic Currency Conversion Helper
       formatAmount: (amount) => {
-        const symbol = CURRENCY_SYMBOLS[get().currency] || '';
-        const num = Number(amount || 0);
-        return `${symbol}${num.toLocaleString()}`;
+        const rawNum = Number(amount || 0);
+        const currentCurrency = get().currency || 'KES';
+        
+        const rate = EXCHANGE_RATES[currentCurrency] || 1;
+        const symbol = CURRENCY_SYMBOLS[currentCurrency] || '';
+
+        // Calculate converted amount
+        const converted = rawNum * rate;
+
+        // KES displays rounded whole numbers; foreign currencies show 2 decimal places
+        const formattedNumber = currentCurrency === 'KES'
+          ? Math.round(converted).toLocaleString()
+          : converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        return `${symbol}${formattedNumber}`;
       },
     }),
     {

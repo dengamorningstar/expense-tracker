@@ -286,13 +286,25 @@ export default function AnalyticsScreen() {
       }
     });
 
+    let peakDayLabel = '-';
+    let maxDaySpend = 0;
+    if (timeframe === 'Daily') {
+      timeframeData.chartBars.forEach((bar) => {
+        if (bar.total > maxDaySpend) {
+          maxDaySpend = bar.total;
+          peakDayLabel = bar.label;
+        }
+      });
+    }
+
     return {
       categoryTotals: catMap,
       dailyAvg,
       topCat,
+      peakDayLabel: maxDaySpend > 0 ? peakDayLabel : '-',
       highestSingleAmount: highestSingle ? highestSingle.amountNum : 0,
     };
-  }, [activeTotalSpent, activeCategoryExpenses, timeframe]);
+  }, [activeTotalSpent, activeCategoryExpenses, timeframe, timeframeData]);
 
   const getBudgetBarColor = () => {
     if (isOverBudget) return '#D63031'; // Red
@@ -421,9 +433,11 @@ export default function AnalyticsScreen() {
         </View>
 
         <View style={[styles.kpiCard, { backgroundColor: currentTheme.card }]}>
-          <Text style={[styles.kpiLabel, { color: currentTheme.subText }]}>Top Category</Text>
+          <Text style={[styles.kpiLabel, { color: currentTheme.subText }]}>
+            {timeframe === 'Daily' ? 'Peak Day' : 'Top Category'}
+          </Text>
           <Text style={[styles.kpiValue, { color: currentTheme.text }]} numberOfLines={1}>
-            {kpis.topCat}
+            {timeframe === 'Daily' ? kpis.peakDayLabel : kpis.topCat}
           </Text>
         </View>
 
@@ -488,6 +502,46 @@ export default function AnalyticsScreen() {
           <TouchableOpacity style={styles.resetFilterButton} onPress={() => setSelectedBar('All')}>
             <Text style={styles.resetFilterText}>Show All {timeframe}</Text>
           </TouchableOpacity>
+        )}
+      </View>
+
+      {/* ITEMIZATION LIST: Expenses for Selected Day/Period */}
+      <View style={[styles.chartCard, { backgroundColor: currentTheme.card }]}>
+        <View style={styles.itemListHeader}>
+          <Text style={[styles.chartTitle, { color: currentTheme.text, marginBottom: 0 }]}>
+            {selectedBar !== 'All' ? `Transactions for ${selectedBar}` : `${timeframe} Transactions`}
+          </Text>
+          <Text style={[styles.itemCountText, { color: currentTheme.subText }]}>
+            {activeCategoryExpenses.length} {activeCategoryExpenses.length === 1 ? 'item' : 'items'}
+          </Text>
+        </View>
+
+        {activeCategoryExpenses.length === 0 ? (
+          <View style={styles.emptyListContainer}>
+            <Ionicons name="receipt-outline" size={32} color={currentTheme.subText} />
+            <Text style={[styles.emptyListText, { color: currentTheme.subText }]}>
+              No expenses recorded for this selection.
+            </Text>
+          </View>
+        ) : (
+          activeCategoryExpenses.map((item) => (
+            <View key={item.id || item.title + item.amountNum} style={[styles.expenseItemRow, { borderBottomColor: currentTheme.border }]}>
+              <View style={styles.expenseItemLeft}>
+                <View style={[styles.categoryIconBg, { backgroundColor: currentTheme.inputBg }]}>
+                  <Ionicons name="pricetag" size={16} color={currentTheme.accent} />
+                </View>
+                <View>
+                  <Text style={[styles.expenseTitle, { color: currentTheme.text }]}>{item.title}</Text>
+                  <Text style={[styles.expenseSubtitle, { color: currentTheme.subText }]}>
+                    {item.category || 'Other'} • {new Date(item.validDate).toLocaleDateString()}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.expenseAmountText, { color: currentTheme.text }]}>
+                {formatAmount(item.amountNum)}
+              </Text>
+            </View>
+          ))
         )}
       </View>
 
@@ -626,6 +680,57 @@ const styles = StyleSheet.create({
   barLabel: { fontSize: 11, marginTop: 6 },
   resetFilterButton: { marginTop: 12, alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 12, backgroundColor: '#E0E0E0', borderRadius: 12 },
   resetFilterText: { fontSize: 12, color: '#333', fontWeight: 'bold' },
+
+  itemListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  itemCountText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  emptyListContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    gap: 6,
+  },
+  emptyListText: {
+    fontSize: 13,
+  },
+  expenseItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  expenseItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  categoryIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  expenseTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  expenseSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  expenseAmountText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
 
   categoryRow: { marginBottom: 14 },
   categoryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
